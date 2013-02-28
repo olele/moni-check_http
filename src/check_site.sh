@@ -86,13 +86,12 @@ function check_ping(){
 }
 
 function nag_prefix(){
-
-case $1 in 
-	0) echo -ne "OK $ADRES";;
-	1) echo -ne "Uwaga $ADRES:";;
-	2) echo -ne "Blad $ADRES:";;
-	*) echo -ne "Nieznany blad $ADRES:"
-esac	
+	case $1 in 
+		0) echo -ne "OK $ADRES";;
+		1) echo -ne "Uwaga $ADRES:";;
+		2) echo -ne "Blad $ADRES:";;
+		*) echo -ne "Nieznany blad $ADRES:"
+	esac	
 }
 
 function set_check_error_msg(){

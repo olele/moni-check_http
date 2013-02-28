@@ -1,4 +1,4 @@
-moni-check_http
+check_http module for moni
 ===============
 
-Nagios custom check_http
+Custom Nagios check_http.sh (Error messages only in Polish)
