@@ -1,12 +1,18 @@
 #!/bin/bash
-export LC_ALL=C
+# Wywolanie: ./check_http.sh domena czas[s]
+
+DEFAULT_MAX_TIME=15
 ADRES=$1
+MAX_TIME=${2:-$DEFAULT_MAX_TIME}
+
+export LC_ALL=C
 ERR=0
 MSG=""
-
+LOAD_TIME=0
+source $(dirname $0)/float.sh
 function get_site(){
 	# TODO: jakos mierzyc czas
-	time $(wget -t 1 -nv -O /tmp/check$$.stdout $ADRES 2> /tmp/check$$.stderr) 2>&1 > /tmp/check$$.time
+	(time $(wget -t 1 -nv -O /tmp/check$$.stdout $ADRES 2> /tmp/check$$.stderr)) 2>/tmp/check$$.time
 	echo $? > /tmp/check$$.errcode
 }
 
@@ -27,6 +33,15 @@ function check_stdout(){
 			set_check_error_msg "Znaleziono bledy na stronie"
 			set_check_exit_code 2
 			return 1
+	fi
+}
+
+function check_time(){
+	LOAD_TIME=$(grep real /tmp/check$$.time|sed 's/real[^0-9]*0m\([^s]*\)s/\1/')
+	if float_cond "$LOAD_TIME > $MAX_TIME"; 
+		then 
+			set_check_error_msg "Czas ladowania strony $LOAD_TIME";
+			set_check_exit_code 1 
 	fi
 }
 
@@ -87,7 +102,7 @@ function check_ping(){
 
 function nag_prefix(){
 	case $1 in 
-		0) echo -ne "OK $ADRES";;
+		0) echo -ne "OK $ADRES zaladowana w ${LOAD_TIME}s";;
 		1) echo -ne "Uwaga $ADRES:";;
 		2) echo -ne "Blad $ADRES:";;
 		*) echo -ne "Nieznany blad $ADRES:"
@@ -122,6 +137,7 @@ if [ $? -ne 0 ]
         then
                 return 3
 fi
+check_time
 
 }
 
@@ -129,7 +145,6 @@ function main(){
 	get_site
 	check_site
 	print_msg
-	cat /tmp/check$$.time
 	rm /tmp/check$$.errcode /tmp/check$$.stderr /tmp/check$$.stdout /tmp/check$$.time
 	exit $ERR
 }
